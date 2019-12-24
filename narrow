@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+
 import os
 import time
 
@@ -7,18 +8,12 @@ from PIL import Image, ImageSequence
 
 
 def narrow_gif(path):
-    """
-    gif图片压缩的思路大概就是：获取gif的每一帧，将每一帧图片缩小，然后将缩小的图片重新合成gif图片。
-    :param path:
-    :return:
-    """
     gif = Image.open(path)
     width, weight = gif.size
-    print('原始尺寸 width, weight', width, weight)
+    print('origin size', width, weight)
 
     duration = gif.info['duration']
 
-    # 使用 ImageSequence 模块的迭代器去遍历 gif 动图的每一帧，然后放到 images 列表里
     images = [f.copy() for f in ImageSequence.Iterator(gif)]
 
     images_list = []
@@ -29,32 +24,28 @@ def narrow_gif(path):
 
     width_new, weight_new = 128, 128
     for index, frame in enumerate(images):
-        # 将帧信息保存为静态图片
         frame.save("./images/%d.png" % index)
 
         im = Image.open("./images/%d.png" % index)
-        # 改变图片尺寸大小
-        # Image.ANTIALIAS表示图片的质量
         im.thumbnail((width_new, weight_new), Image.ANTIALIAS)
+
         images_list.append(im)
 
     os.system("rm -rf ./images")
 
     # out = '{}/{}.gif'.format('/'.join(path.split('/')[:-1]), str(int(time.time())))
     out = path
-    # 通过设定 save_all=True 参数和 append_images，可以一次性将多帧图像同时存入GIF图片。
-    # 还有一个 duration 参数控制的是帧率，我们可以直接从原图片中获取该信息
     images_list[0].save(out, 'gif', save_all=True, append_images=images_list[1:], loop=0, duration=duration)
     #
     image = Image.open(path)
     width, weight = image.size
-    print('新尺寸 width, weight', width, weight)
+    print('current size', width, weight)
 
 
 def narrow_image(path):
     image = Image.open(path)
     width, weight = image.size
-    print('原始尺寸 width, weight', width, weight)
+    print('origin size', width, weight)
 
     # rate = 0.25
     # width_new, weight_new = width * rate, weight * rate
@@ -68,7 +59,7 @@ def narrow_image(path):
     #
     image = Image.open(path)
     width, weight = image.size
-    print('新尺寸 width, weight', width, weight)
+    print('current size', width, weight)
 
 
 def main(path):
@@ -78,17 +69,18 @@ def main(path):
         gif=narrow_gif,
         png=narrow_image,
         jpg=narrow_image,
+        jpeg=narrow_image,
     )
 
     suffix = path.split('.')[-1]
     func = form.get(suffix)
     if func is None:
-        print('没有处理缩小该文件的函数')
+        print('error, only can process gif, png, jpg, jpeg')
     else:
         func(path=path)
         print('success')
 
 
 if __name__ == '__main__':
-    path = input('输入图片地址\n')
+    path = input('please input image path\n')
     main(path=path)
